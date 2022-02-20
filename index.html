@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shizuru&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./index.css"/>
+    <title>Home Page</title>
+  </head>
+
+  <body>
+    <h1>Welcome to Multiplayer Wordle!</h1>
+    <div class="btn-group-vertical">
+      <button onclick="createcode()" type="button" class="btn btn-primary" class="button" style="vertical-align:middle"><span>Create Game</span></button>
+      <button onclick="entercode()" type="button" class="btn btn-primary" class="button" style="vertical-align:middle"><span> Join Game</span></button>
+    </div>
+
+    <script>
+      function createlink(){
+        const password=()=>math.floor(math.random()*5000)
+        const u1=windows.prompt("Enter your name")
+        //now redirect to loby
+      }
+      function entercode(){
+        //it would have that code saved in it's internal db or it would depend on back-end part
+        const code=windows.prompt("Enter the game code")
+        if (password==code){
+          return "Enter here" //button of some kind on which LINK(this also depends on back end)
+        }
+        "Wrong Gamecode!"
+      }
+    </script>
+  </body>
+</html>
