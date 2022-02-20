@@ -58,6 +58,8 @@ function Wordle() {
           // check for win
           if(checkWin(clues)){
             socket.emit('submit-solution', 1)
+            setCurRow(curRow + 1);
+            return
           }
           if(curRow === 5){
             alert('Game Over');
