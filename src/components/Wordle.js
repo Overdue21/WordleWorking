@@ -5,6 +5,7 @@ import ScoreBoard from './ScoreBoard'
 import WordInput from './WordInput'
 import checkGuess from '../utils/word-utils'
 import {SocketContext} from '../contexts/socket'
+//import { set } from 'core-js/core/dict'
 
 function isLetter(str) {
     return str.length === 1 && str.match(/[a-z]/i);
@@ -55,13 +56,16 @@ function Wordle() {
               prevTileColors[curRow] = clues;
               return prevTileColors;
           });
+          
           // check for win
           if(checkWin(clues)){
             socket.emit('submit-solution', 1)
             setCurRow(curRow + 1);
+            alert("You won")
             return
           }
           if(curRow === 5){
+            socket.emit('submit-solution', -1)
             alert('Game Over');
             return;
           }
@@ -78,7 +82,27 @@ function Wordle() {
       });
       console.log(guess);
     }
-
+    const reset = () => {
+      setGuessing(true)
+      setAnswer('')
+      setGuesses([
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+      ])
+      setCurRow(0)
+      setTileColors([
+        ['white','white','white','white','white'],
+        ['white','white','white','white','white'],
+        ['white','white','white','white','white'],
+        ['white','white','white','white','white'],
+        ['white','white','white','white','white'],
+        ['white','white','white','white','white'],
+    ])
+    }
     // register keypress event listener
     useEffect(() => {
       document.addEventListener('keydown', onKeyDown);
@@ -92,6 +116,20 @@ function Wordle() {
         console.log(data)  
         setScoreBoard(data)
       })
+      socket.on('connect', () => {
+        console.log(socket.id)
+      })
+      socket.on('you-are-master', () => {
+        setGuessing(false)
+      })
+      socket.on('reset', () => {
+        reset()
+      })
+      socket.on('share-secret', (secret) => {
+        setAnswer(secret)
+        console.log(secret)
+      })
+      
     }, [socket])
     return (
     <div>
@@ -104,7 +142,7 @@ function Wordle() {
                 return <WordRow key={`${idx}wordrow`} letters={g} letterState={tileColors[idx]}/>
             })
         }
-        <ScoreBoard scoreboard = {scoreBoard}/>
+        <ScoreBoard room = {scoreBoard}/>
         <WordInput disabled={guessing} />
     </div>
   )

@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'react'
 
-function ScoreBoard({scoreboard}) {
+function ScoreBoard({room}) {
     //const [score,setScore] = useState({
     //    player1: 0,
     //    player2: 0,
@@ -9,10 +9,13 @@ function ScoreBoard({scoreboard}) {
         <div className="scoreBoard">
             <h3> Score </h3>
             {
-               scoreboard.map((s, idx) => {
-                    console.log(s.name)
-                    console.log(s.score)
-                    return <div key ={`scoreboard ${idx}`}>{s.name} - {s.score} </div>
+               room.map((s, idx) => {
+                    if(s.isMaster){
+                        return <div key ={`scoreboard ${idx}`}>{s.name} : {s.score} Master </div>
+                    }else if(s.done){
+                        <div key ={`scoreboard ${idx}`}>{s.name} : {s.score} Done </div>
+                    }
+                    return <div key ={`scoreboard ${idx}`}>{s.name} : {s.score} </div>
                })
             }
         </div>

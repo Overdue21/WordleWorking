@@ -1,14 +1,19 @@
-import {React, useState, useEffect} from 'react'
+import {React, useState, useEffect, useContext} from 'react'
+import {SocketContext} from '../contexts/socket'
 
 function WordInput({disabled}) {
+    const socket = useContext(SocketContext)
     const [value,setValue] = useState('');
+    const[canSubmit,setCanSubmit] = useState(false)
     const handleChange = (event) => {
         setValue(event.target.value);
     }
     const handleSubmit = (event) => {
-        alert(value);
+        socket.emit('submit-secret-word', value)
         event.preventDefault();
+       
     }
+    
     return (
         <div className="wordInput">
             <form onSubmit={handleSubmit}>
