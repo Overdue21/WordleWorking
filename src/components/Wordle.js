@@ -30,7 +30,8 @@ function Wordle() {
         '',
     ]);
     const [curRow,setCurRow] = useState(0);
-    const [guessing,setGuessing] = useState(true);
+    const [guessing,setGuessing] = useState();
+    const [isMaster, setIsMaster] = useState();
     const [tileColors,setTileColors] = useState([
         ['white','white','white','white','white'],
         ['white','white','white','white','white'],
@@ -39,10 +40,10 @@ function Wordle() {
         ['white','white','white','white','white'],
         ['white','white','white','white','white'],
     ])
-    const [answer,setAnswer] = useState('crane');
+    const [answer,setAnswer] = useState('');
     // handle a key press
     const onKeyDown = (e) => {
-      if(!guessing) return;
+      if(!guessing || isMaster) return;
       const letter = e.key;
       // submitted guess
       if(guess.length === 5 && letter === 'Enter') {
@@ -83,7 +84,9 @@ function Wordle() {
       console.log(guess);
     }
     const reset = () => {
-      setGuessing(true)
+      console.log('reset')
+      setGuessing(false)
+      setIsMaster(false)
       setAnswer('')
       setGuesses([
         '',
@@ -113,6 +116,7 @@ function Wordle() {
     
     useEffect(() => {
       socket.on('update-room', (data) => {
+        console.log('room updated')
         console.log(data)  
         setScoreBoard(data)
       })
@@ -120,14 +124,17 @@ function Wordle() {
         console.log(socket.id)
       })
       socket.on('you-are-master', () => {
-        setGuessing(false)
+        console.log('master set')
+        setGuessing(true)
+        setIsMaster(true)
       })
       socket.on('reset', () => {
         reset()
       })
       socket.on('share-secret', (secret) => {
+        console.log('secret shared')
         setAnswer(secret)
-        console.log(secret)
+        if(!isMaster) setGuessing(true)
       })
       
     }, [socket])
@@ -143,7 +150,8 @@ function Wordle() {
             })
         }
         <ScoreBoard room = {scoreBoard}/>
-        <WordInput disabled={guessing} />
+          {console.log(!guessing)}
+        <WordInput disabled={!guessing} setGuessing={setGuessing} />
     </div>
   )
 }

@@ -16,11 +16,19 @@ let rooms = {}
 
 //on client side, const socket must me initialized to io() after importing from 'socket.io-client
 io.on('connection', async (socket) => {
-  console.log(socket.id)
+  socket.on('disconnect', () => {
+    let index = rooms[socket.data.room].clients.indexOf(socket)
+    rooms[socket.data.room].clients.splice(index, 1)
+    if (rooms[socket.data.room].clients.length > 0) {
+      updateRoom(socket)
+    }
+  })
   socket.on('submit-secret-word', (secret) => {
     console.log(secret)
-    for(let s of rooms[socket.data.room].clients) {
+    socket.data.done = true
+    for (let s of rooms[socket.data.room].clients) {
       s.emit('share-secret', secret)
+      s.data.done = false
     }
   })
   socket.on('submit-solution', (score) => {
@@ -28,52 +36,63 @@ io.on('connection', async (socket) => {
     socket.data.done = true
     updateRoom(socket)
   })
-  
+
   socket.on('join-room', async (userName, roomId) => {
     socket.data.name = userName
     socket.data.room = roomId
-    socket.data.done = false
+    socket.data.done = true
     socket.data.score = 0
     socket.data.isMaster = false
-    
-    if(rooms[roomId] && rooms[socket.data.room].clients.length >= 50) {
-        socket.disconnect()
-        return;
+
+    if (rooms[roomId] && rooms[socket.data.room].clients.length >= 50) {
+      socket.disconnect()
+      return;
     }
 
-    if (rooms[roomId]) {
+    if (rooms[roomId] && rooms[roomId].clients.length > 0) {
       rooms[roomId].clients.push(socket);
     } else {
-      rooms[roomId] = {clients: [socket]}
+      rooms[roomId] = { clients: [socket] }
       socket.data.done = true
     }
-    updateRoom(socket)    
-   });
+    updateRoom(socket)
+  });
 })
 const setMaster = (socket) => {
   let active = false
-  for(let s of rooms[socket.data.room].clients) {
-    if(!s.data.done){
+  let master = 0
+  for (let s of rooms[socket.data.room].clients) {
+    if (!s.data.done) {
       active = true
     }
   }
-  if(!active){ 
-    for(let s of rooms[socket.data.room].clients) {
-      s.data.done = false
+  if (!active) {
+    console.log('fml')
+    for (let s of rooms[socket.data.room].clients) {
+      if(s.data.isMaster){
+        master = rooms[socket.data.room].clients.indexOf(s) 
+      }
+      s.data.done = true
       s.data.isMaster = false
       s.emit('reset')
     }
-    let rand = Math.floor(Math.random()*rooms[socket.data.room].clients.length)
-    rooms[socket.data.room].clients[rand].data.isMaster = true
-    rooms[socket.data.room].clients[rand].data.done = true
-    rooms[socket.data.room].clients[rand].emit('you-are-master')
+    let m = master + 1;
+    if (!!rooms[socket.data.room].clients[m]) {
+      rooms[socket.data.room].clients[m].data.isMaster = true
+      rooms[socket.data.room].clients[m].data.done = false
+      rooms[socket.data.room].clients[m].emit('you-are-master')
+    }else{
+      rooms[socket.data.room].clients[0].data.isMaster = true
+      rooms[socket.data.room].clients[0].data.done = false
+      rooms[socket.data.room].clients[0].emit('you-are-master')
+    }
   }
 }
 const updateRoom = (socket) => {
   setMaster(socket)
-  for(let s of rooms[socket.data.room].clients) {
+  for (let s of rooms[socket.data.room].clients) {
     s.emit("update-room", rooms[socket.data.room].clients.map(ss => ss.data));
-  }  
+  }
 }
 
 server.listen(3000, () => {

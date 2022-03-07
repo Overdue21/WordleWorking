@@ -1,17 +1,24 @@
 import {React, useState, useEffect, useContext} from 'react'
 import {SocketContext} from '../contexts/socket'
 
-function WordInput({disabled}) {
+function WordInput({disabled, setGuessing}) {
     const socket = useContext(SocketContext)
-    const [value,setValue] = useState('');
-    const[canSubmit,setCanSubmit] = useState(false)
+    const [value,setValue] = useState('')
+    function isLetter(str) {
+      for(let i = 0; i < str.length; i++){
+        if(!str.charAt(i).match(/[a-z]/i)) return false
+      }
+      return true
+    }
     const handleChange = (event) => {
-        setValue(event.target.value);
+      if(!isLetter(event.target.value)) return 
+      setValue(event.target.value)
     }
     const handleSubmit = (event) => {
+        event.preventDefault()
+        if(value.length != 5) return
         socket.emit('submit-secret-word', value)
-        event.preventDefault();
-       
+        setGuessing(false)
     }
     
     return (
